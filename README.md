@@ -1,1 +1,2 @@
-# tamea
+python3 -m http.server 8000
+# then open http://localhost:8000/valentine.html in your browser# tamea

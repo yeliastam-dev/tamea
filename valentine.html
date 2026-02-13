@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>For Sinta</title>
+  <style>
+    :root{
+      --bg:#fff5f8; --accent:#8b1c42; --accent-2:#c84163; --muted:#333;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family:Georgia, 'Times New Roman', serif;
+      background:var(--bg); color:var(--muted); text-align:center; cursor:crosshair;
+    }
+    .page{display:none;padding:48px 18px;min-height:100vh;align-items:center;justify-content:center}
+    .page.active{display:flex;flex-direction:column}
+    h1,p{max-width:900px;margin:16px auto;line-height:1.6}
+    button{padding:10px 22px;font-size:16px;border:0;border-radius:8px;background:var(--accent);color:#fff;cursor:pointer;transition:transform .18s ease,background .18s}
+    button:hover{transform:translateY(-2px);background:var(--accent-2)}
+
+    /* GAME AREA */
+    #gameArea{position:relative;height:420px;background:#ffe6ec;border-radius:12px;overflow:hidden;margin-top:28px;box-shadow:0 6px 20px rgba(139,28,66,.08)}
+    .heart{
+      position:absolute;font-size:40px;user-select:none;pointer-events:auto;transform-origin:center;will-change:transform,top,left;filter:drop-shadow(0 6px 8px rgba(139,28,66,.08));
+      transition:transform .12s ease,opacity .18s ease;
+    }
+    .heart:hover{transform:scale(1.12)}
+
+    /* floating animation */
+    @keyframes floatY{0%{transform:translateY(0)}50%{transform:translateY(-18px)}100%{transform:translateY(0)}}
+    .floating{animation:floatY 3.6s ease-in-out infinite}
+
+    /* page fades */
+    .fade-in{animation:fadeIn .32s ease both}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+    #gun{position:fixed;right:20px;bottom:12px;font-size:42px;transition:transform .12s ease}
+    .recoil{transform:translateY(-8px) rotate(-8deg) scale(.98)}
+
+    #cry{display:none;font-size:56px;margin-top:18px}
+
+    /* responsive tweaks */
+    @media(max-width:520px){
+      .heart{font-size:34px}
+      #gameArea{height:320px}
+      #gun{font-size:36px}
+    }
+  </style>
+</head>
+<body>
+
+<!-- PAGE 1 -->
+<div id="page1" class="page active fade-in" aria-live="polite">
+  <img src="https://i.imgur.com/9Qh6K5B.png" width="200" alt="For Sinta">
+  <h1>Hi Sinta</h1>
+  <button onclick="nextPage(2)">Hello</button>
+</div>
+
+<!-- PAGE 2 GUN GAME -->
+<div id="page2" class="page" role="application" aria-label="Heart shooting game">
+  <h1 class="fade-in">Shoot one heart to continue</h1>
+  <div id="gameArea" aria-hidden="false"></div>
+  <div id="gun">🔫</div>
+</div>
+
+<!-- PAGE 3 MESSAGE -->
+<div id="page3" class="page">
+  <p class="fade-in">
+  Loving you is not just a feeling — it is a privilege.
+  In a world that constantly changes, you remain my certainty.
+  Your presence brings calm to my chaos and purpose to my day.
+  I admire not only who you are, but how you choose to be kind, patient, and sincere.
+  If I had to choose again, in every lifetime, it would still be you.
+  </p>
+  <button onclick="nextPage(4)">Next</button>
+</div>
+
+<!-- PAGE 4 SPOTIFY -->
+<div id="page4" class="page">
+  <h1 class="fade-in">Libo-Libong Buwan — Kyle Raphael</h1>
+  <iframe style="border-radius:12px" src="https://open.spotify.com/embed/track/6GgS1nqK9y4nHCqB6SmHgF" width="300" height="380" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" title="Spotify player"></iframe>
+  <br>
+  <button onclick="nextPage(5)">Continue</button>
+</div>
+
+<!-- PAGE 5 -->
+<div id="page5" class="page">
+  <h1>I don't play games with hearts — except this one.</h1>
+  <button onclick="nextPage(6)">Next</button>
+</div>
+
+<!-- PAGE 6 FINAL QUESTION -->
+<div id="page6" class="page">
+  <h1>Will you be my Valentine?</h1>
+  <div id="cry">:(</div>
+  <div style="display:flex;gap:14px;justify-content:center;margin-top:18px">
+    <button id="yesBtn" onclick="yesAnswer()">Yes</button>
+    <button id="noBtn" onclick="noAnswer()">No</button>
+  </div>
+</div>
+
+<script>
+  function nextPage(pageNumber){
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    const target=document.getElementById('page'+pageNumber);
+    if(target){ target.classList.add('active'); target.classList.add('fade-in') }
+  }
+
+  // ===== GUN GAME (polished) =====
+  const gameArea = document.getElementById('gameArea');
+  const gun = document.getElementById('gun');
+  let spawnTimer = null;
+  let hearts = new Set();
+
+  function rand(min,max){return Math.random()*(max-min)+min}
+
+  function createHeart(){
+    const heart = document.createElement('div');
+    heart.className = 'heart floating';
+    heart.textContent = '❤';
+    const gw = Math.min(window.innerWidth - 120, 900);
+    heart.style.top = rand(20, Math.max(40, gameArea.clientHeight-80)) + 'px';
+    heart.style.left = rand(12, gw) + 'px';
+    heart.style.fontSize = rand(30,54)+'px';
+    heart.style.opacity = 0.98;
+
+    // subtle random float timing
+    heart.style.animationDuration = (rand(2.6,4.4))+'s';
+
+    function popped(){
+      heart.style.transition='transform .18s ease,opacity .18s ease';
+      heart.style.transform='scale(1.4)'; heart.style.opacity=0;
+      hearts.delete(heart);
+      setTimeout(()=>heart.remove(),220);
+      nextPage(3);
+      stopSpawning();
+    }
+
+    heart.addEventListener('click', (e)=>{ e.stopPropagation(); popped(); recoilGun(); });
+    heart.addEventListener('touchstart', (e)=>{ e.stopPropagation(); popped(); recoilGun(); },{passive:true});
+
+    gameArea.appendChild(heart);
+    hearts.add(heart);
+
+    // gently drift to new positions every interval
+    const move = setInterval(()=>{
+      if(!document.body.contains(heart)){ clearInterval(move); return }
+      heart.style.left = rand(8, Math.max(8, gameArea.clientWidth-90)) + 'px';
+    }, 1200 + Math.random()*1200);
+  }
+
+  function startSpawning(){ if(spawnTimer) return; spawnTimer = setInterval(()=>{ if(hearts.size<8) createHeart() }, 700); }
+  function stopSpawning(){ clearInterval(spawnTimer); spawnTimer = null; }
+
+  function recoilGun(){ gun.classList.add('recoil'); setTimeout(()=>gun.classList.remove('recoil'),140) }
+
+  // start when page 2 becomes active
+  const observer = new MutationObserver(muts=>{
+    muts.forEach(m=>{ if(m.type==='attributes'){
+      if(document.getElementById('page2').classList.contains('active')) startSpawning(); else stopSpawning();
+    }})
+  });
+  observer.observe(document.getElementById('page2'),{attributes:true});
+
+  // make gun clickable to simulate shooting (click nearest heart)
+  gun.addEventListener('click', ()=>{
+    recoilGun();
+    // find nearest heart to center of screen
+    const list=[...hearts]; if(!list.length) return;
+    const h=list[Math.floor(Math.random()*list.length)]; h.click();
+  });
+
+  // ===== FINAL QUESTION =====
+  let yesSize = 16;
+  function noAnswer(){ document.getElementById('cry').style.display='block'; yesSize = Math.min(48, yesSize+6); document.getElementById('yesBtn').style.fontSize = yesSize+'px'; }
+  function yesAnswer(){
+    document.getElementById('page6').innerHTML = '<h1 class="fade-in">I love you so much, Sinta.<br>Thank you.</h1>';
+  }
+
+  // initial single heart to guide player
+  createHeart();
+
+  // cleanup on unload
+  window.addEventListener('beforeunload', ()=>{ stopSpawning(); observer.disconnect(); hearts.clear(); });
+</script>
+
+</body>
+</html>
